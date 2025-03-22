@@ -47,16 +47,19 @@ class TodoItem(tk.Frame):
     complete_items:list[str] = []
     incomplete_items:list[str] = []
 
-    def __init__(self, master, label_text:str, is_completed:bool = False):
+    def __init__(self, master_body, label_text:str, is_completed:bool = False):
 
         #Config
-        super().__init__(master)
+        super().__init__(master_body)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=10)
         self.rowconfigure(0, weight=1)
 
+        self.master_body = master_body
+        self.label_text = label_text
+
         #Checkbutton
-        self.checkbutton = ttk.Checkbutton(self)
+        self.checkbutton = ttk.Checkbutton(self, command=self.update_item_completion_status)
         self.checkbutton.invoke()
 
         if is_completed == False:
@@ -72,6 +75,33 @@ class TodoItem(tk.Frame):
         #Placement
         self.checkbutton.grid(row=0, column=0, sticky='e')
         self.label.grid(row=0, column=1, sticky='w')
+    
+    def update_item_completion_status(self):
+        if not self.checkbutton.grid_info():
+            return
+
+        new_lines = []
+        for line in read_data():
+
+            clean_line = line.removeprefix("+++").removeprefix("---").rstrip()
+            if not clean_line:
+                continue
+            if clean_line == self.label_text:
+                
+                if 'selected' in self.checkbutton.state():
+                    line = f'+++{clean_line}\n'
+                    TodoItem.incomplete_items.remove(clean_line)
+                else:
+                    line = f'---{clean_line}\n'
+                    TodoItem.complete_items.remove(clean_line)
+
+                
+            new_lines.append(line)
+
+        write_data(''.join(new_lines), 'w')
+        self.master_body.load_todo_items()
+        self.destroy()
+        
 
 class Body(tk.Frame):
     def __init__(self, master):
@@ -79,8 +109,8 @@ class Body(tk.Frame):
         self.columnconfigure((0, 1), weight=1)
 
         #Widgets
-        testItem = TodoItem(self, 'Remove this todo item')
-        testItem.grid(column=0)
+        # testItem = TodoItem(self, 'Remove this todo item')
+        # testItem.grid(column=0)
 
     def load_todo_items(self):
         items = read_data()
@@ -96,18 +126,17 @@ class Body(tk.Frame):
                 if item in TodoItem.complete_items:
                     continue
 
-                print(item, TodoItem.complete_items)
                 todo_item = TodoItem(self, item, is_completed=True)
                 todo_item.grid(column=1)
                 
             elif item.startswith("---"):
                 item = item.removeprefix("---")
 
+
                 if item in TodoItem.incomplete_items:
                     continue
                     
 
-                print(item, TodoItem.incomplete_items)
                 todo_item = TodoItem(self, item, is_completed=False)
                 todo_item.grid(column=0)
 
@@ -116,9 +145,10 @@ def add_item(app:App):
     app.header.add_entry.delete(0, END)        
 
     write_data(f'---{item_text}\n')
-
-    
     app.body.load_todo_items()
+
+
+
 
 application = App('World\'s greatest Todo App', (500,500))
 application.body.load_todo_items()
