@@ -15,15 +15,16 @@ class App(tk.Tk):
         self.header.pack(expand=True, fill='x', anchor='n')
 
 class Header(tk.Frame):
-    def __init__(self, master = None):
+    def __init__(self, master):
         super().__init__(master)
 
-        #Add button #Add entry
+        #Widgets
         self.add_button:ttk.Button = ttk.Button(self, text='Add Task')        
         self.add_entry:ttk.Entry = ttk.Entry(self)
 
         self.add_button.pack(expand=True, fill='x', side='left')
-        self.add_entry.pack(expand=True, fill='x', side='right', ipady=4)
+        self.add_entry.pack(expand=True, fill='x', side='right')
+
 
 
 app = App('World\'s greatest Todo App', (500,500))
