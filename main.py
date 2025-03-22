@@ -25,18 +25,23 @@ class App(tk.Tk):
         self.header = Header(self)
         self.header.pack(fill='x', anchor='n')
 
-        self.body = Body(self)
+        self.body:Body = Body(self)
         self.body.pack(fill='both', expand=True)
+    
+        
 class Header(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master:App):
         super().__init__(master)
 
         #Widgets
         self.add_button:ttk.Button = ttk.Button(self, text='Add Task', command=self.add_item)        
         self.add_entry:ttk.Entry = ttk.Entry(self)
+        self.clear_button:ttk.Button = ttk.Button(self, text='Clear', style=DANGER, command=lambda: self.clear())
+        self.master_app:App = master
 
-        self.add_button.pack(expand=True, fill='x', side='left')
-        self.add_entry.pack(expand=True, fill='x', side='right')
+        self.add_button.pack(fill='x', side='left')
+        self.add_entry.pack(expand=True, fill='x', side='left')
+        self.clear_button.pack(fill='x', side='right')
 
 
     def add_item(self):
@@ -47,6 +52,13 @@ class Header(tk.Frame):
 
         write_data(f'---{item_text}\n')
         self.master.body.load_todo_items()
+    
+    def clear(self):
+        write_data("", write_mode='w')
+        [widget.destroy() for widget in self.master_app.body.completed_tasks_list.winfo_children()]
+        [widget.destroy() for widget in self.master_app.body.incomplete_tasks_list.winfo_children()]
+        
+        
 
 class TodoItem(tk.Frame):
     complete_items:list[str] = []
@@ -75,10 +87,10 @@ class TodoItem(tk.Frame):
 
         
         #Label
-        self.label = ttk.Label(self, text=label_text)
+        self.label = ttk.Label(self, text=label_text, wraplength=150)
 
         #Placement
-        self.checkbutton.grid(row=0, column=0, sticky='e')
+        self.checkbutton.grid(row=0, column=0, sticky='w')
         self.label.grid(row=0, column=1, sticky='w')
     
     def update_item_completion_status(self):
@@ -110,6 +122,8 @@ class TodoItem(tk.Frame):
 class TasksList(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
+        self.pack_propagate(False)
+        
 
 class Body(tk.Frame):
     def __init__(self, master):
@@ -118,8 +132,8 @@ class Body(tk.Frame):
         self.completed_tasks_list:TasksList = TasksList(self)
         self.incomplete_tasks_list:TasksList = TasksList(self)
         
-        self.incomplete_tasks_list.pack(side='left', expand=True, fill='both')
-        self.completed_tasks_list.pack(side='right', expand=True, fill='both')
+        self.incomplete_tasks_list.pack(side='left', expand=True, fill='both', pady=16)
+        self.completed_tasks_list.pack(side='right', expand=True, fill='both', pady=16)
         
     def load_todo_items(self):
         items = read_data()
@@ -136,7 +150,7 @@ class Body(tk.Frame):
                     continue
 
                 todo_item = TodoItem(self.completed_tasks_list, self,item, is_completed=True)
-                todo_item.pack(anchor='n')
+                todo_item.pack(anchor='n', fill='x', padx=32)
             
             #Incomplete Tasks
             elif item.startswith("---"):
@@ -148,7 +162,7 @@ class Body(tk.Frame):
                     
 
                 todo_item = TodoItem(self.incomplete_tasks_list, self,item, is_completed=False)
-                todo_item.pack(anchor='n')
+                todo_item.pack(anchor='n', fill='x', padx=32)
 
 
 application = App('World\'s greatest Todo App', (500,500))
