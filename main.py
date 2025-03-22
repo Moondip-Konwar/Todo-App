@@ -13,13 +13,15 @@ def read_data() -> list[str]:
     except FileNotFoundError or FileExistsError:
         with open("data.txt", "w") as file:
             file.write("")
-class App(tk.Tk):
+class App(ttk.Window):
     def __init__(self, _title:str, _size:tuple):
-        super().__init__()
+        super().__init__(themename='journal')
 
         #Window
         self.title(_title)
         self.geometry(f'{_size[0]}x{_size[1]}')
+        self.minsize(_size[0], _size[1])
+        self.maxsize(_size[0], _size[1])
 
         #Frames
         self.header = Header(self)
@@ -36,7 +38,7 @@ class Header(tk.Frame):
         #Widgets
         self.add_button:ttk.Button = ttk.Button(self, text='Add Task', command=self.add_item)        
         self.add_entry:ttk.Entry = ttk.Entry(self)
-        self.clear_button:ttk.Button = ttk.Button(self, text='Clear', style=DANGER, command=lambda: self.clear())
+        self.clear_button:ttk.Button = ttk.Button(self, text='Clear', style=(DANGER, OUTLINE), command=lambda: self.clear())
         self.master_app:App = master
 
         self.add_button.pack(fill='x', side='left')
@@ -119,21 +121,22 @@ class TodoItem(tk.Frame):
         self.master_body.load_todo_items()
         self.destroy()        
 
-class TasksList(tk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
+class TasksList(tk.LabelFrame):
+    def __init__(self, master, label_text:str):
+        super().__init__(master, text=label_text, labelanchor='n', pady=8)
         self.pack_propagate(False)
+        
         
 
 class Body(tk.Frame):
     def __init__(self, master):
         super().__init__(master, background='red')
 
-        self.completed_tasks_list:TasksList = TasksList(self)
-        self.incomplete_tasks_list:TasksList = TasksList(self)
+        self.completed_tasks_list:TasksList = TasksList(self, 'Completed Tasks')
+        self.incomplete_tasks_list:TasksList = TasksList(self, 'Incomplete Tasks')
         
-        self.incomplete_tasks_list.pack(side='left', expand=True, fill='both', pady=16)
-        self.completed_tasks_list.pack(side='right', expand=True, fill='both', pady=16)
+        self.incomplete_tasks_list.pack(side='right', expand=True, fill='both', pady=16)
+        self.completed_tasks_list.pack(side='left', expand=True, fill='both', pady=16)
         
     def load_todo_items(self):
         items = read_data()
