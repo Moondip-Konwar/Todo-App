@@ -1,7 +1,6 @@
-from tkinter import ttk
 import tkinter as tk
 from tkinter.constants import *
-import ttkbootstrap
+import ttkbootstrap as ttk
 
 class App(tk.Tk):
     def __init__(self, _title:str, _size:tuple):
