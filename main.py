@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.constants import *
+from ttkbootstrap.constants import *
 import ttkbootstrap as ttk
 
 def write_data(data:str, write_mode = 'a'):
@@ -22,10 +23,10 @@ class App(tk.Tk):
 
         #Frames
         self.header = Header(self)
-        self.header.pack(expand=True, fill='x', anchor='n')
+        self.header.pack(fill='x', anchor='n')
 
         self.body = Body(self)
-        self.body.pack(expand=True, fill='both')
+        self.body.pack(fill='both', expand=True)
 class Header(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
@@ -40,6 +41,8 @@ class Header(tk.Frame):
 
     def add_item(self):
         item_text = self.master.header.add_entry.get()
+        if not item_text:
+            return
         self.master.header.add_entry.delete(0, END)        
 
         write_data(f'---{item_text}\n')
@@ -49,10 +52,10 @@ class TodoItem(tk.Frame):
     complete_items:list[str] = []
     incomplete_items:list[str] = []
 
-    def __init__(self, master_body, label_text:str, is_completed:bool = False):
+    def __init__(self, master, master_body, label_text:str, is_completed:bool = False):
 
         #Config
-        super().__init__(master_body)
+        super().__init__(master)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=10)
         self.rowconfigure(0, weight=1)
@@ -102,14 +105,22 @@ class TodoItem(tk.Frame):
 
         write_data(''.join(new_lines), 'w')
         self.master_body.load_todo_items()
-        self.destroy()
-        
+        self.destroy()        
+
+class TasksList(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
 
 class Body(tk.Frame):
     def __init__(self, master):
-        super().__init__(master)
-        self.columnconfigure((0, 1), weight=1)
+        super().__init__(master, background='red')
 
+        self.completed_tasks_list:TasksList = TasksList(self)
+        self.incomplete_tasks_list:TasksList = TasksList(self)
+        
+        self.incomplete_tasks_list.pack(side='left', expand=True, fill='both')
+        self.completed_tasks_list.pack(side='right', expand=True, fill='both')
+        
     def load_todo_items(self):
         items = read_data()
 
@@ -117,15 +128,17 @@ class Body(tk.Frame):
         for item in items:
             item = item.rstrip()
 
+            #Completed Tasks
             if item.startswith("+++"):
                 item = item.removeprefix("+++")
 
                 if item in TodoItem.complete_items:
                     continue
 
-                todo_item = TodoItem(self, item, is_completed=True)
-                todo_item.grid(column=1)
-                
+                todo_item = TodoItem(self.completed_tasks_list, self,item, is_completed=True)
+                todo_item.pack(anchor='n')
+            
+            #Incomplete Tasks
             elif item.startswith("---"):
                 item = item.removeprefix("---")
 
@@ -134,8 +147,8 @@ class Body(tk.Frame):
                     continue
                     
 
-                todo_item = TodoItem(self, item, is_completed=False)
-                todo_item.grid(column=0)
+                todo_item = TodoItem(self.incomplete_tasks_list, self,item, is_completed=False)
+                todo_item.pack(anchor='n')
 
 
 application = App('World\'s greatest Todo App', (500,500))
